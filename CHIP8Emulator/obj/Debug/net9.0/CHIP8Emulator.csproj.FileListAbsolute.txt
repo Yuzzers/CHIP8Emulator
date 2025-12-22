@@ -12,3 +12,4 @@ C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\obj\Debug\net9.0\refint\CHIP8Emulator
 C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\obj\Debug\net9.0\CHIP8Emulator.pdb
 C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\obj\Debug\net9.0\CHIP8Emulator.genruntimeconfig.cache
 C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\obj\Debug\net9.0\ref\CHIP8Emulator.dll
+C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\obj\Debug\net9.0\CHIP8Emulator.sourcelink.json

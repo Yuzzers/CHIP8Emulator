@@ -42,3 +42,7 @@ for (int y = 0; y < Display.Height; y++)
     }
     Console.WriteLine();
 }
+
+Chip8.Input.SetKey(0x5, true);
+Chip8.Cpu.ExecuteCycle();
+Chip8.Input.SetKey(0x5, false);

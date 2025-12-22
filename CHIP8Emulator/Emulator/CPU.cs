@@ -12,7 +12,6 @@ public class CPU
     private byte[] Registers = new byte[16];
 
     private ushort[] Stack = new ushort[16];
-    private ushort Opcode;
     private byte Sp;
     public ushort Pc{get; private set;} 
     public ushort Index { get; set; }
@@ -207,23 +206,100 @@ public CPU(Memory memory, Display display, Input input)
             case 0xD000://dxyn
             ExecuteDxyn(Opcode);
             break;
-            Pc += 2;
-            break;
             case 0xE000:
-            //key shit Todo
+                {
+                    int vx = (Opcode & 0x0F00) >> 8;
+                    int key = Registers[vx];
+                    switch (Opcode & 0x00FF)
+                    {
+                        case 0x9E: // SKP Vx
+                            if (input.IsKeyPressed(key))
+                                Pc += 4;
+                            else
+                                Pc += 2;
+                            break;
+                        case 0xA1: // SKNP Vx
+                            if (!input.IsKeyPressed(key))
+                                Pc += 4;
+                            else
+                                Pc += 2;
+                            break;
+                        default:
+                            Console.WriteLine($"unknown 0xE000 opcode: 0x{Opcode:X4}");
+                            Pc += 2;
+                            break;
+                    }
+                }
             Pc +=2;
             break;
             case 0xF000:
-            //timers, Memory, lots of shit to do
-            Pc+=2;
-            break;
+                {
+                int vx = (Opcode & 0x0F00) >> 8;
+                switch (Opcode & 0x00FF)
+                    {
+                        case 0x07: // Fx07 - LD Vx, DT
+                        Registers[vx] = DelayTimer;
+                        Pc += 2;
+                        break;
 
-        default:
-        Console.WriteLine($"unknowing oxocode 0x{Opcode:X4}");
-        Pc+=2;
-        break;
+                case 0x0A: // Fx0A - LD Vx, K
+                {
+                    int key = input.GetPressedKey();
+                    if (key == -1)
+                    {
+                        return; // repeat this instruction (PC unchanged)
+                    }
+
+                    Registers[vx] = (byte)key;
+                    Pc += 2;
+                    break;
+                }
+
+                case 0x15: // Fx15 - LD DT, Vx
+                    DelayTimer = Registers[vx];
+                    Pc += 2;
+                    break;
+
+                case 0x18: // Fx18 - LD ST, Vx
+                    SoundTimer = Registers[vx];
+                    Pc += 2;
+                    break;
+
+                case 0x1E: // Fx1E - ADD I, Vx
+                    Index += Registers[vx];
+                    Pc += 2;
+                    break;
+
+                case 0x29: // Fx29 - LD F, Vx
+                    Index = (ushort)(0x050 + Registers[vx] * 5);
+                    Pc += 2;
+                    break;
+
+                case 0x33: // Fx33 - LD B, Vx
+                    // BCD –
+                    Pc += 2;
+                    break;
+
+                case 0x55: // Fx55 - LD [I], Vx
+                    // Memory dump –
+                    Pc += 2;
+                    break;
+
+                case 0x65: // Fx65 - LD Vx, [I]
+                    // Memory load – 
+                    Pc += 2;
+                    break;
+
+                default:
+                    Console.WriteLine($"Unknown 0xF000 opcode: 0x{Opcode:X4}");
+                    Pc += 2;
+                    break;
+                    }
+                break;
+                }   
         }
-
     }
 }
+
+
 

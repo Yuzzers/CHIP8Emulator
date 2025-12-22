@@ -9,6 +9,7 @@ public class Chip8 {
 
     public CPU Cpu => cpu;
     public Display Display => display;
+    public Input Input => input;
 
 
     private const ushort ProgramstartAddress = 0x200;
