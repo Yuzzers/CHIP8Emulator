@@ -1,6 +1,4 @@
-C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\bin\Debug\net9.0\CHIP8Emulator.exe
 C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\bin\Debug\net9.0\CHIP8Emulator.deps.json
-C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\bin\Debug\net9.0\CHIP8Emulator.runtimeconfig.json
 C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\bin\Debug\net9.0\CHIP8Emulator.dll
 C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\bin\Debug\net9.0\CHIP8Emulator.pdb
 C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\obj\Debug\net9.0\CHIP8Emulator.GeneratedMSBuildEditorConfig.editorconfig
@@ -10,6 +8,5 @@ C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\obj\Debug\net9.0\CHIP8Emulator.csproj
 C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\obj\Debug\net9.0\CHIP8Emulator.dll
 C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\obj\Debug\net9.0\refint\CHIP8Emulator.dll
 C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\obj\Debug\net9.0\CHIP8Emulator.pdb
-C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\obj\Debug\net9.0\CHIP8Emulator.genruntimeconfig.cache
 C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\obj\Debug\net9.0\ref\CHIP8Emulator.dll
 C:\Users\Nexsy\CHIP8Emulator\CHIP8Emulator\obj\Debug\net9.0\CHIP8Emulator.sourcelink.json

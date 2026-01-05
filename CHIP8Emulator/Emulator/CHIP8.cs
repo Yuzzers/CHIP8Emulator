@@ -1,16 +1,13 @@
-
+namespace CHIP8Emulator
+{
+    
 
 public class Chip8 {
 
-    private CPU cpu;
-    public Memory memory;
-    public Display display;
-    public Input input;
-
-    public CPU Cpu => cpu;
-    public Display Display => display;
-    public Input Input => input;
-
+    private readonly CPU cpu;
+    private readonly Memory memory;
+    private readonly Display display;
+    private readonly Input input;
 
     private const ushort ProgramstartAddress = 0x200;
     private const ushort FontStartAddress = 0x050;
@@ -47,20 +44,26 @@ public class Chip8 {
         LoadFontSet();
 
     }
+
     private void LoadFontSet()
     {
         memory.Load(FontSet, FontStartAddress);
     }
 
-public void LoadRom(byte[] rom)
+    public void LoadRom(byte[] rom)
     {
         memory.Load(rom,ProgramstartAddress);
         cpu.SetPc(ProgramstartAddress);
     }
 
+        public ReadOnlySpan<bool> Pixels => display.Buffer;
+
+        public int ScreenWidth => Display.Width;
+        public int ScreenHeight => Display.Height;
+
 
 }
-
+}
 
 
 

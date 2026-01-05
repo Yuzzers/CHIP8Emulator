@@ -1,6 +1,8 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using CHIP8Emulator;
+
 
 namespace CHIP8EmulatorGUI
 {
@@ -45,6 +47,8 @@ namespace CHIP8EmulatorGUI
             // Optional: paint event for drawing
             displayPanel.Paint += DisplayPanel_Paint;
         }
+
+
 
         private void DisplayPanel_Paint(object sender, PaintEventArgs e)
         {
