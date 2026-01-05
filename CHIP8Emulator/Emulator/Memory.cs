@@ -2,8 +2,6 @@ using System.Reflection.Metadata;
 
 public class Memory{
     
-
-
 byte[] memory = new byte [4096];
 
 public byte Read(int address)

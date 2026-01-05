@@ -1,0 +1,14 @@
+C:\Users\Nexsy\WinForm\bin\Debug\net9.0-windows\WinForm.exe
+C:\Users\Nexsy\WinForm\bin\Debug\net9.0-windows\WinForm.deps.json
+C:\Users\Nexsy\WinForm\bin\Debug\net9.0-windows\WinForm.runtimeconfig.json
+C:\Users\Nexsy\WinForm\bin\Debug\net9.0-windows\WinForm.dll
+C:\Users\Nexsy\WinForm\bin\Debug\net9.0-windows\WinForm.pdb
+C:\Users\Nexsy\WinForm\obj\Debug\net9.0-windows\WinForm.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Nexsy\WinForm\obj\Debug\net9.0-windows\WinForm.AssemblyInfoInputs.cache
+C:\Users\Nexsy\WinForm\obj\Debug\net9.0-windows\WinForm.AssemblyInfo.cs
+C:\Users\Nexsy\WinForm\obj\Debug\net9.0-windows\WinForm.csproj.CoreCompileInputs.cache
+C:\Users\Nexsy\WinForm\obj\Debug\net9.0-windows\WinForm.dll
+C:\Users\Nexsy\WinForm\obj\Debug\net9.0-windows\refint\WinForm.dll
+C:\Users\Nexsy\WinForm\obj\Debug\net9.0-windows\WinForm.pdb
+C:\Users\Nexsy\WinForm\obj\Debug\net9.0-windows\WinForm.genruntimeconfig.cache
+C:\Users\Nexsy\WinForm\obj\Debug\net9.0-windows\ref\WinForm.dll
