@@ -230,7 +230,6 @@ public CPU(Memory memory, Display display, Input input)
                             break;
                     }
                 }
-            Pc +=2;
             break;
             case 0xF000:
                 {
