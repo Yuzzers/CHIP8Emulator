@@ -2,60 +2,97 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using CHIP8Emulator;
-
+using System.IO;
 
 namespace CHIP8EmulatorGUI
 {
     public class MainForm : Form
     {
+        private Chip8 emulator;
         private Panel displayPanel;
-        private Button loadRomButton;
-        private Button settingsButton;
-
-        private const int Scale = 10; // Each CHIP-8 pixel will be 10x10
-        private const int WidthPixels = 64;
-        private const int HeightPixels = 32;
+        private const int Scale = 10;
 
         public MainForm()
         {
-            // Form properties
             this.Text = "CHIP-8 Emulator";
-            this.ClientSize = new Size(WidthPixels * Scale, HeightPixels * Scale + 40);
+            this.ClientSize = new Size(64 * Scale, 32 * Scale);
 
-            // Initialize buttons
-            loadRomButton = new Button { Text = "Load ROM", Location = new Point(10, 0), Size = new Size(100, 30) };
-            settingsButton = new Button { Text = "Settings", Location = new Point(120, 0), Size = new Size(100, 30) };
+            emulator = new Chip8();
 
-            // Buttons currently do nothing
-            loadRomButton.Click += (s, e) => MessageBox.Show("Load ROM clicked!");
-            settingsButton.Click += (s, e) => MessageBox.Show("Settings clicked!");
-
-            // Add buttons to the form
-            this.Controls.Add(loadRomButton);
-            this.Controls.Add(settingsButton);
-
-            // Panel to draw CHIP-8 display
             displayPanel = new Panel
             {
-                Location = new Point(0, 40),
-                Size = new Size(WidthPixels * Scale, HeightPixels * Scale),
+                Location = new Point(0, 0),
+                Size = new Size(64 * Scale, 32 * Scale),
                 BackColor = Color.Black
             };
-
+            displayPanel.Paint += DisplayPanel_Paint;
             this.Controls.Add(displayPanel);
 
-            // Optional: paint event for drawing
-            displayPanel.Paint += DisplayPanel_Paint;
+            // Load ROM at startup
+            LoadRomAtStartup();
+
+            // Timer for emulator + redraw
+            var timer = new System.Windows.Forms.Timer();
+
+            timer.Interval = 1000 / 60; // 60Hz
+            timer.Tick += (s, e) =>
+            {
+                // Run multiple CPU cycles per tick
+                for (int i = 0; i < 10; i++)
+                    emulator.ExecuteCycle();
+
+                // Decrement timers once per tick
+                emulator.DecrementTimers();
+
+                
+                displayPanel.Invalidate();
+            };
+            timer.Start();
         }
 
+        private void LoadRomAtStartup()
+        {
+            using OpenFileDialog ofd = new OpenFileDialog
+            {
+                Title = "Select CHIP-8 ROM",
+                Filter = "CHIP-8 ROM (*.ch8;*.rom)|*.ch8;*.rom|All files (*.*)|*.*"
+            };
 
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    byte[] rom = Romloader.LoadRom(ofd.FileName);
+                    emulator.LoadRom(rom);
+                }
+                catch (FileNotFoundException ex)
+                {
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.Close(); // Exit app if ROM not found
+                }
+            }
+            else
+            {
+                // No file selected
+                MessageBox.Show("No ROM selected, exiting.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.Close();
+            }
+        }
 
         private void DisplayPanel_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
+            g.Clear(Color.Black);
 
-            // Example: fill a pixel at (0,0) for testing
-            g.FillRectangle(Brushes.White, 0, 0, Scale, Scale);
+            var pixels = emulator.Pixels;
+            for (int y = 0; y < 32; y++)
+            {
+                for (int x = 0; x < 64; x++)
+                {
+                    if (pixels[y * 64 + x])
+                        g.FillRectangle(Brushes.White, x * Scale, y * Scale, Scale, Scale);
+                }
+            }
         }
 
         [STAThread]
@@ -67,3 +104,7 @@ namespace CHIP8EmulatorGUI
         }
     }
 }
+
+
+
+

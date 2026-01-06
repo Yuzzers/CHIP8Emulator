@@ -18,13 +18,19 @@ public class CPU
     public byte DelayTimer { get; private set; }
     public byte SoundTimer { get; private set; }
 
+    public void DecrementTimers()
+{
+    if (DelayTimer > 0) DelayTimer--;
+    if (SoundTimer > 0) SoundTimer--;
+}
 
-    // bare sikker tilgang til CPU registre så jeg kan tese med program.cs
+
+    /* bare sikker tilgang til CPU registre så jeg kan tese med program.cs
     public byte[] Reg => Registers;
     public byte this[int i] => Registers[i];
     public byte GetRegister(int i) => Registers[i];
 
-
+*/
     
 
 
@@ -89,7 +95,6 @@ public CPU(Memory memory, Display display, Input input)
         Pc +=2;
 
     }
-
 
     public void ExecuteCycle()
     {
@@ -275,7 +280,6 @@ public CPU(Memory memory, Display display, Input input)
                     break;
 
                 case 0x33: // Fx33 - LD B, Vx
-                    // BCD –
                     Pc += 2;
                     break;
 

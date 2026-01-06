@@ -11,7 +11,8 @@ public class Chip8 {
 
     private const ushort ProgramstartAddress = 0x200;
     private const ushort FontStartAddress = 0x050;
-        public static readonly byte[] FontSet= new byte[]
+    public static readonly byte[] FontSet= new byte[]
+    
     {
 
             0xF0,0x90,0x90,0x90,0xF0, // 0
@@ -32,7 +33,8 @@ public class Chip8 {
             0xF0,0x80,0xF0,0x80,0x80, // F    
 
     };
-
+    public byte DelayTimer => cpu.DelayTimer;
+    public byte SoundTimer => cpu.SoundTimer;
     public Chip8()
     {
     
@@ -45,16 +47,30 @@ public class Chip8 {
 
     }
 
+    public void ExecuteCycle()
+{
+    cpu.ExecuteCycle();
+}
+
+public void DecrementTimers()
+{
+    cpu.DecrementTimers();
+}
+
     private void LoadFontSet()
     {
         memory.Load(FontSet, FontStartAddress);
     }
 
-    public void LoadRom(byte[] rom)
-    {
-        memory.Load(rom,ProgramstartAddress);
-        cpu.SetPc(ProgramstartAddress);
-    }
+private bool romLoaded = false;
+
+public void LoadRom(byte[] rom)
+{
+    memory.Load(rom, ProgramstartAddress);
+    cpu.SetPc(ProgramstartAddress);
+    romLoaded = true;
+}
+
 
         public ReadOnlySpan<bool> Pixels => display.Buffer;
 
