@@ -55,12 +55,8 @@ public CPU(Memory memory, Display display, Input input)
     {
         Pc = address;
     }
-
-/// <summary>
-/// dxyn opcode, tegner en sprite på koordinearne (vx, vy)
-/// sætter VF til 1 hvis en pixel er ændret fra tændt til utent (collision)
-/// 
-/// </summary>
+// dxyn opcode, tegner en sprite på koordinearne (vx, vy)
+// sætter VF til 1 hvis en pixel er ændret fra tændt til utent (collision)
     public void ExecuteDxyn(ushort opcode)
     {
         byte x = Registers[(opcode & 0x0F00) >>8];
@@ -76,7 +72,6 @@ public CPU(Memory memory, Display display, Input input)
             //læser sprite fra memory starter på index
             byte spriteByte = memory.Read(Index+row);
 
-            // collumn loop
             for (int collision =0; collision <8;collision++)
             {
 

@@ -14,7 +14,7 @@ public class Display
     }  
 
 
-            //2d into 1D array, modlus for wrapping
+        //2d into 1D array, modlus for wrapping
         private int GetIndex( int x, int y)
     {
         x %= Width;
@@ -27,21 +27,12 @@ public class Display
     public bool TogglePixel(int x, int y)
     {
      int Index = GetIndex( x,  y);
-
-
-
      bool collision = pixels[Index];
      pixels[Index] ^= true;
-
      return collision;
     }
 
 
-            //retunerer staten af en pixel på (x,y) 
-    public bool getPixel(int x, int y)
-    {
-        return pixels[GetIndex(x,y)];
-    }
         // GUI shit for senere
     public ReadOnlySpan<bool> Buffer => pixels;
 

@@ -8,10 +8,6 @@ public byte Read(int address)
     {
         return memory[address];
     }
-       public void Write(int address, byte value)
-    {
-        memory[address] = value;
-    }
 
     public void Load(byte[] data, int ProgramstartAddress)
     {

@@ -68,7 +68,7 @@ public void LoadRom(byte[] rom)
 {
     memory.Load(rom, ProgramstartAddress);
     cpu.SetPc(ProgramstartAddress);
-    romLoaded = true;
+    
 }
 
 

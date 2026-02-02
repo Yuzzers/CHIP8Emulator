@@ -1,0 +1,27 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+
+# Debug / symbols
+*.pdb
+*.ipdb
+*.iobj
+
+# Compiled binaries
+*.exe
+*.dll
+
+# Logs / cache
+*.log
+*.cache
+
+# OS junk
+Thumbs.db
+.DS_Store
