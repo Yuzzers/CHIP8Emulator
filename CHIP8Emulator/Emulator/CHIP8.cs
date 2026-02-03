@@ -62,7 +62,6 @@ public void DecrementTimers()
         memory.Load(FontSet, FontStartAddress);
     }
 
-private bool romLoaded = false;
 
 public void LoadRom(byte[] rom)
 {
