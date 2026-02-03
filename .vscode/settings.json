@@ -1,11 +1,6 @@
 {
-    "python.testing.unittestArgs": [
-        "-v",
-        "-s",
-        "./CHIP8.Tests",
-        "-p",
-        "*test.py"
-    ],
-    "python.testing.pytestEnabled": false,
-    "python.testing.unittestEnabled": true
+    "dotnet-test-explorer.testProjectPath": "**/*Tests.csproj",
+    "dotnet-test-explorer.testFramework": "xunit",
+    "dotnet-test-explorer.showCodeLens": true,
+    "dotnet-test-explorer.showTestOutput": true
 }

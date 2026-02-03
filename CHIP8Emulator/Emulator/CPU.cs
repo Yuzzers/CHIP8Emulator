@@ -1,5 +1,8 @@
 using System.Data;
 using System.Runtime.Intrinsics.X86;
+using System.Runtime.CompilerServices;
+[assembly: InternalsVisibleTo("CHIP8.Tests")]
+
 
 public class CPU
 {
@@ -25,12 +28,14 @@ public class CPU
 }
 
 
-    /* bare sikker tilgang til CPU registre så jeg kan tese med program.cs
-    public byte[] Reg => Registers;
-    public byte this[int i] => Registers[i];
-    public byte GetRegister(int i) => Registers[i];
 
-*/
+internal byte GetRegister(int i) => Registers[i];
+internal void SetRegister(int i, byte value) => Registers[i] = value;
+internal ushort GetStackPointer() => Sp;
+internal ushort GetIndex() => Index;
+internal void SetIndex(ushort value) => Index = value;
+
+
     
 
 
