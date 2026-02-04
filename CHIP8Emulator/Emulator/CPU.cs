@@ -290,14 +290,30 @@ public CPU(Memory memory, Display display, Input input)
 
                 case 0x55: // Fx55 - LD [I], Vx
                     // Memory dump –
+                    byte x55 = (byte)((Opcode & 0x0F00) >> 8);
+                    for (int i=0; i<=x55; i++)
+                        {
+                            memory.Write(Index+i, Registers[i]);
+
+                        }
                     Pc += 2;
+
+
+                    // Has quirk where index is incremented by 1 afterwards
                     break;
 
                 case 0x65: // Fx65 - LD Vx, [I]
                     // Memory load – 
+                    byte x65 = (byte)((Opcode & 0x0F00) >> 8);
+ 
+                    for (int i=0; i<=x65; i++)
+                        {
+                            Registers[i]=memory.Read(Index+i);
+                            
+                        }
                     Pc += 2;
+                    // Has quirk where index is incremented by 1 afterwards
                     break;
-
                 default:
                     Console.WriteLine($"Unknown 0xF000 opcode: 0x{Opcode:X4}");
                     Pc += 2;
