@@ -280,6 +280,11 @@ public CPU(Memory memory, Display display, Input input)
                     break;
 
                 case 0x33: // Fx33 - LD B, Vx
+                    byte xs = (byte)((Opcode & 0x0F00) >> 8);
+                    byte vxs = Registers[xs];
+                    memory.Write(Index,      (byte)(vxs / 100));
+                    memory.Write(Index + 1,  (byte)((vxs / 10) % 10));
+                    memory.Write(Index + 2,  (byte)(vxs % 10));
                     Pc += 2;
                     break;
 
