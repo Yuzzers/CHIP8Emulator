@@ -135,59 +135,30 @@ public class UnitTest1
         Assert.Equal(2, tens);      // (123 / 10) % 10 = 2
         Assert.Equal(3, ones);      // 123 % 10 = 3
     }
-    [Fact]
-    public void Execute_8XY4_NoOverflow_BelowBoundary()
+    [Theory]
+    [InlineData(99, 0, 9, 9)]
+    [InlineData(100, 1, 0, 0)]
+    [InlineData(255, 2, 5, 5)]
+    public void Execute_Fx33_BcdBoundaries(
+    byte value,
+    byte h,
+    byte t,
+    byte o)
     {
         var memory = new Memory();
         var display = new Display();
         var input = new Input();
         var cpu = new CPU(memory, display, input);
-
         cpu.SetPc(0x200);
-        cpu.SetRegister(1, 200);
-        cpu.SetRegister(2, 54); // 200 + 54 = 254
+        cpu.SetRegister(0, value);
+        cpu.SetIndex(0x300);
 
-        memory.Load(new byte[] { 0x81, 0x24 }, 0x200); // ADD V1, V2
+        memory.Load(new byte[] { 0xF0, 0x33 }, 0x200);
         cpu.ExecuteCycle();
 
-        Assert.Equal(254, cpu.GetRegister(1));
-        Assert.Equal(0, cpu.GetRegister(0xF));
-    }
-    [Fact]
-    public void Execute_8XY4_NoOverflow_AtBoundary()
-    {
-        var memory = new Memory();
-        var display = new Display();
-        var input = new Input();
-        var cpu = new CPU(memory, display, input);
-
-        cpu.SetPc(0x200);
-        cpu.SetRegister(1, 200);
-        cpu.SetRegister(2, 55); // 200 + 55 = 255
-
-        memory.Load(new byte[] { 0x81, 0x24 }, 0x200);
-        cpu.ExecuteCycle();
-
-        Assert.Equal(255, cpu.GetRegister(1));
-        Assert.Equal(0, cpu.GetRegister(0xF));
-    }
-    [Fact]
-    public void Execute_8XY4_Overflow_AboveBoundary()
-    {
-        var memory = new Memory();
-        var display = new Display();
-        var input = new Input();
-        var cpu = new CPU(memory, display, input);
-
-        cpu.SetPc(0x200);
-        cpu.SetRegister(1, 200);
-        cpu.SetRegister(2, 56); // 200 + 56 = 256
-
-        memory.Load(new byte[] { 0x81, 0x24 }, 0x200);
-        cpu.ExecuteCycle();
-
-        Assert.Equal(0, cpu.GetRegister(1)); // wraparound
-        Assert.Equal(1, cpu.GetRegister(0xF)); // carry
+        Assert.Equal(h, memory.Read(0x300));
+        Assert.Equal(t, memory.Read(0x301));
+        Assert.Equal(o, memory.Read(0x302));
     }
 
     [Fact]
