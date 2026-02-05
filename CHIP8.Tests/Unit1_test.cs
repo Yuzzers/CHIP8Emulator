@@ -190,5 +190,33 @@ public class UnitTest1
         Assert.Equal(1, cpu.GetRegister(0xF)); // carry
     }
 
+    [Fact]
+    public void ExecuteCycle_ProcessesMultipleInstructionsCorrectly()
+    {
+        var memory = new Memory();
+        var display = new Display();
+        var input = new Input();
+        var cpu = new CPU(memory, display, input);
+
+        cpu.SetPc(0x200);
+
+        memory.Load(new byte[]
+        {
+        0x61, 0x05, // LD V1, 5
+        0x71, 0x0A  // ADD V1, 10
+        }, 0x200);
+
+        // Cycle 1
+        cpu.ExecuteCycle();
+        Assert.Equal(5, cpu.GetRegister(1));
+        Assert.Equal(0x202, cpu.Pc);
+
+        // Cycle 2
+        cpu.ExecuteCycle();
+        Assert.Equal(15, cpu.GetRegister(1));
+        Assert.Equal(0x204, cpu.Pc);
+    }
+
+
 }
 
