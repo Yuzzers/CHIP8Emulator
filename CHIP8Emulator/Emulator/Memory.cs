@@ -1,17 +1,18 @@
 using System.Reflection.Metadata;
 
-public class Memory{
-    
-byte[] memory = new byte [4096];
+public class Memory
+{
 
-public byte Read(int address)
+    byte[] memory = new byte[4096];
+
+    public byte Read(int address)
     {
         return memory[address];
     }
     public void Write(int address, byte value)
-{
-    memory[address] = value;
-}
+    {
+        memory[address] = value;
+    }
 
 
     public void Load(byte[] data, int ProgramstartAddress)

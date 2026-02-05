@@ -1,19 +1,20 @@
 namespace CHIP8Emulator
 {
-    
 
-public class Chip8 {
 
-    private readonly CPU cpu;
-    private readonly Memory memory;
-    private readonly Display display;
-    private readonly Input input;
-
-    private const ushort ProgramstartAddress = 0x200;
-    private const ushort FontStartAddress = 0x050;
-    public static readonly byte[] FontSet= new byte[]
-    
+    public class Chip8
     {
+
+        private readonly CPU cpu;
+        private readonly Memory memory;
+        private readonly Display display;
+        private readonly Input input;
+
+        private const ushort ProgramstartAddress = 0x200;
+        private const ushort FontStartAddress = 0x050;
+        public static readonly byte[] FontSet = new byte[]
+
+        {
 
             0xF0,0x90,0x90,0x90,0xF0, // 0
             0x20,0x60,0x20,0x20,0x70, // 1
@@ -32,43 +33,43 @@ public class Chip8 {
             0xF0,0x80,0xF0,0x80,0xF0, // E
             0xF0,0x80,0xF0,0x80,0x80, // F    
 
-    };
-    public byte DelayTimer => cpu.DelayTimer;
-    public byte SoundTimer => cpu.SoundTimer;
-    public Chip8()
-    {
-    
-        memory = new Memory();
-        display= new Display();
-        input = new Input();
-        cpu = new CPU(memory, display, input);
+        };
+        public byte DelayTimer => cpu.DelayTimer;
+        public byte SoundTimer => cpu.SoundTimer;
+        public Chip8()
+        {
 
-        LoadFontSet();
+            memory = new Memory();
+            display = new Display();
+            input = new Input();
+            cpu = new CPU(memory, display, input);
 
-    }
+            LoadFontSet();
 
-    public void ExecuteCycle()
-{
-    cpu.ExecuteCycle();
-}
+        }
 
-public void DecrementTimers()
-{
-    cpu.DecrementTimers();
-}
+        public void ExecuteCycle()
+        {
+            cpu.ExecuteCycle();
+        }
 
-    private void LoadFontSet()
-    {
-        memory.Load(FontSet, FontStartAddress);
-    }
+        public void DecrementTimers()
+        {
+            cpu.DecrementTimers();
+        }
+
+        private void LoadFontSet()
+        {
+            memory.Load(FontSet, FontStartAddress);
+        }
 
 
-public void LoadRom(byte[] rom)
-{
-    memory.Load(rom, ProgramstartAddress);
-    cpu.SetPc(ProgramstartAddress);
-    
-}
+        public void LoadRom(byte[] rom)
+        {
+            memory.Load(rom, ProgramstartAddress);
+            cpu.SetPc(ProgramstartAddress);
+
+        }
 
 
         public ReadOnlySpan<bool> Pixels => display.Buffer;
@@ -77,7 +78,7 @@ public void LoadRom(byte[] rom)
         public int ScreenHeight => Display.Height;
 
 
-}
+    }
 }
 
 

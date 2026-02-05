@@ -44,7 +44,7 @@ namespace CHIP8EmulatorGUI
                 // Decrement timers once per tick
                 emulator.DecrementTimers();
 
-                
+
                 displayPanel.Invalidate();
             };
             timer.Start();

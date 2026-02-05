@@ -1,13 +1,14 @@
-public class Input{ 
-    
-bool[] keypad = new bool[16];
+public class Input
+{
 
-public void SetKey(int key, bool isPressed)
+    bool[] keypad = new bool[16];
+
+    public void SetKey(int key, bool isPressed)
     {
         keypad[key] = isPressed;
     }
 
-public bool IsKeyPressed(int key)
+    public bool IsKeyPressed(int key)
     {
         return keypad[key];
     }
