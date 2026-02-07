@@ -20,6 +20,7 @@ public class CPU
     public ushort Index { get; set; }
     public byte DelayTimer { get; private set; }
     public byte SoundTimer { get; private set; }
+    
 
     public void DecrementTimers()
     {
@@ -98,6 +99,7 @@ public class CPU
 
     public void ExecuteCycle()
     {
+        
         ushort Opcode = FetchOpcode(); // Fetchies
 
         //motherload of switches for Executie and decoding
@@ -164,21 +166,27 @@ public class CPU
                     case 0x2: Registers[x] &= Registers[y]; break; //  AND Vx, Vy - Vx= Vx AND Vy
                     case 0x3: Registers[x] ^= Registers[y]; break; //  XOR Vx, Vy - Vx= Vx XOR Vy
                     case 0x4: // ADD Vx, Vy with carry
-                        int sum = Registers[x] + Registers[y];
+                        byte vx04 = Registers[x];
+                        byte vy04 = Registers[y];
+                        int sum = vx04+vy04;
                         Registers[0xF] = (byte)(sum > 255 ? 1 : 0);
                         Registers[x] = (byte)sum;
                         break;
                     case 0x5: // SUB Vx, By
-                        Registers[0XF] = (byte)(Registers[x] > Registers[y] ? 1 : 0);
-                        Registers[x] -= Registers[y];
+                        byte vx05 = Registers[x];
+                        byte vy05 = Registers[y];
+                        Registers[0xF] = (byte)(vx05 >= vy05 ? 1 : 0);
+                        Registers[x] = (byte)(vx05-vy05);
                         break;
                     case 0x6: // SHR Vx {, Vy}
                         Registers[0xF] = (byte)(Registers[x] & 0X1);
                         Registers[x] >>= 1;
                         break;
                     case 0x7: // SUBN Vx, Vy
-                        Registers[0xF] = (byte)(Registers[y] > Registers[x] ? 1 : 0);
-                        Registers[x] = (byte)(Registers[y] - Registers[x]);
+                        byte vx07 = Registers[x];
+                        byte vy07 = Registers[y];
+                        Registers[0xF] = (byte)(vy07 >= vx07 ? 1 : 0);
+                        Registers[x] = (byte)(vy07 - vx07);
                         break;
                     case 0xE: // SHL Vx {, Vy}
                         Registers[0xF] = (byte)((Registers[x] & 0X80) >> 7);
