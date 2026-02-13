@@ -110,39 +110,36 @@ public class CPU
     {
         int x = (opcode & 0x0F00) >> 8;
         int y = (opcode & 0x00F0) >> 4;
-
-
+        byte vx = Registers[x];
+        byte vy = Registers[y];
         switch (opcode & 0x000F)
         {
+
             case 0x0: Registers[x] = Registers[y]; break; //  LD Vx, Vy - Sætter værdien Vx= Vy
             case 0x1: Registers[x] |= Registers[y]; break; //  OR Vx, Vy -  Vx= Vx OR Vy
             case 0x2: Registers[x] &= Registers[y]; break; //  AND Vx, Vy - Vx= Vx AND Vy
             case 0x3: Registers[x] ^= Registers[y]; break; //  XOR Vx, Vy - Vx= Vx XOR Vy
             case 0x4: // ADD Vx, Vy with carry
-                byte vx04 = Registers[x];
-                byte vy04 = Registers[y];
-                int sum = vx04 + vy04;
+                int sum = vx + vy;
                 Registers[0xF] = (byte)(sum > 255 ? 1 : 0);
                 Registers[x] = (byte)sum;
                 break;
             case 0x5: // SUB Vx, By
-                byte vx05 = Registers[x];
-                byte vy05 = Registers[y];
-                Registers[0xF] = (byte)(vx05 >= vy05 ? 1 : 0);
-                Registers[x] = (byte)(vx05 - vy05);
+
+                Registers[0xF] = (byte)(vx >= vy ? 1 : 0);
+                Registers[x] = (byte)(vx - vy);
                 break;
             case 0x6: // SHR Vx {, Vy}
-                Registers[0xF] = (byte)(Registers[x] & 0X1);
+                Registers[0xF] = (byte)(vx & 0X1);
                 Registers[x] >>= 1;
                 break;
             case 0x7: // SUBN Vx, Vy
-                byte vx07 = Registers[x];
-                byte vy07 = Registers[y];
-                Registers[0xF] = (byte)(vy07 >= vx07 ? 1 : 0);
-                Registers[x] = (byte)(vy07 - vx07);
+
+                Registers[0xF] = (byte)(vy >= vx ? 1 : 0);
+                Registers[x] = (byte)(vy - vx);
                 break;
             case 0xE: // SHL Vx {, Vy}
-                Registers[0xF] = (byte)((Registers[x] & 0X80) >> 7);
+                Registers[0xF] = (byte)((vx & 0X80) >> 7);
                 Registers[x] <<= 1;
                 break;
             default:
@@ -187,6 +184,7 @@ public class CPU
     private void ExecuteFGroup(ushort opcode)
     {
         int vx = (opcode & 0x0F00) >> 8;
+        
         switch (opcode & 0x00FF)
         {
             case 0x07: // Fx07 - LD Vx, DT
@@ -228,8 +226,7 @@ public class CPU
                 break;
 
             case 0x33: // Fx33 - LD B, Vx
-                byte xs = (byte)((opcode & 0x0F00) >> 8);
-                byte vxs = Registers[xs];
+                byte vxs = Registers[vx];
                 memory.Write(Index, (byte)(vxs / 100));
                 memory.Write(Index + 1, (byte)((vxs / 10) % 10));
                 memory.Write(Index + 2, (byte)(vxs % 10));
@@ -238,8 +235,7 @@ public class CPU
 
             case 0x55: // Fx55 - LD [I], Vx
                        // Memory dump –
-                byte x55 = (byte)((opcode & 0x0F00) >> 8);
-                for (int i = 0; i <= x55; i++)
+                for (int i = 0; i <= vx; i++)
                 {
                     memory.Write(Index + i, Registers[i]);
 
@@ -252,9 +248,7 @@ public class CPU
 
             case 0x65: // Fx65 - LD Vx, [I]
                        // Memory load – 
-                byte x65 = (byte)((opcode & 0x0F00) >> 8);
-
-                for (int i = 0; i <= x65; i++)
+                for (int i = 0; i <= vx; i++)
                 {
                     Registers[i] = memory.Read(Index + i);
 
