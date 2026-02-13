@@ -1,6 +1,8 @@
 using System.Data;
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.CompilerServices;
+using System.Reflection.Emit;
+using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("CHIP8.Tests")]
 
 
@@ -10,17 +12,16 @@ public class CPU
     private Memory memory;
     private Display display;
     private Input input;
-
-
+    public delegate void OpcodeHandler(ushort opcode);
+    private Dictionary<int, OpcodeHandler> table;
     private byte[] Registers = new byte[16];
-
     private ushort[] Stack = new ushort[16];
     private byte Sp;
     public ushort Pc { get; private set; }
     public ushort Index { get; set; }
     public byte DelayTimer { get; private set; }
     public byte SoundTimer { get; private set; }
-    
+
 
     public void DecrementTimers()
     {
@@ -46,6 +47,26 @@ public class CPU
         this.display = display;
         this.input = input;
 
+        table = new Dictionary<int, OpcodeHandler>
+        {
+        { 0x0000, Execute0Group },
+        { 0x1000, ExecuteJP },
+        { 0x2000, ExecuteCALL },
+        { 0x3000, ExecuteSE_Vx_Byte },
+        { 0x4000, ExecuteSNE_Vx_Byte },
+        { 0x5000, ExecuteSE_Vx_Vy },
+        { 0x6000, ExecuteLD_Vx_Byte },
+        { 0x7000, ExecuteADD_Vx_Byte },
+        { 0x8000, Execute8Group },
+        { 0x9000, ExecuteSNE_Vx_Vy },
+        { 0xA000, ExecuteLD_I_Addr },
+        { 0xB000, ExecuteJP_V0_Addr },
+        { 0xC000, ExecuteRND_Vx_Byte },
+        { 0xD000, ExecuteDRW_Vx_Vy_Nibble },
+        { 0xE000, ExecuteEGroup },
+        { 0xF000, ExecuteFGroup }
+        };
+
     }
 
     public ushort FetchOpcode()
@@ -55,15 +76,263 @@ public class CPU
         return (ushort)((leftByte << 8) | rightByte);
     }
 
-
-
     public void SetPc(ushort address)
     {
         Pc = address;
     }
-    // dxyn opcode, tegner en sprite på koordinearne (vx, vy)
-    // sætter VF til 1 hvis en pixel er ændret fra tændt til utent (collision)
-    public void ExecuteDxyn(ushort opcode)
+    public void ExecuteCycle()
+    {
+        ushort opcode = FetchOpcode(); // Fetchies
+        OpcodeHandler handler = table[opcode & 0xF000];
+        handler(opcode);
+    }
+    //GROUP HANDLERS
+    private void Execute0Group(ushort opcode)
+    {
+        switch (opcode & 0x00FF)
+        {
+            case 0xE0:
+                display.Clear();
+                Pc += 2;
+                break;
+
+            case 0xEE:
+                Pc = Stack[--Sp];
+                break;
+
+            default: // 0nnn or unknown
+                Console.WriteLine($"Unknown 0x0 group opcode: 0x{opcode:X4}");
+                Pc += 2;
+                break;
+        }
+    }
+    private void Execute8Group(ushort opcode)
+    {
+        int x = (opcode & 0x0F00) >> 8;
+        int y = (opcode & 0x00F0) >> 4;
+
+
+        switch (opcode & 0x000F)
+        {
+            case 0x0: Registers[x] = Registers[y]; break; //  LD Vx, Vy - Sætter værdien Vx= Vy
+            case 0x1: Registers[x] |= Registers[y]; break; //  OR Vx, Vy -  Vx= Vx OR Vy
+            case 0x2: Registers[x] &= Registers[y]; break; //  AND Vx, Vy - Vx= Vx AND Vy
+            case 0x3: Registers[x] ^= Registers[y]; break; //  XOR Vx, Vy - Vx= Vx XOR Vy
+            case 0x4: // ADD Vx, Vy with carry
+                byte vx04 = Registers[x];
+                byte vy04 = Registers[y];
+                int sum = vx04 + vy04;
+                Registers[0xF] = (byte)(sum > 255 ? 1 : 0);
+                Registers[x] = (byte)sum;
+                break;
+            case 0x5: // SUB Vx, By
+                byte vx05 = Registers[x];
+                byte vy05 = Registers[y];
+                Registers[0xF] = (byte)(vx05 >= vy05 ? 1 : 0);
+                Registers[x] = (byte)(vx05 - vy05);
+                break;
+            case 0x6: // SHR Vx {, Vy}
+                Registers[0xF] = (byte)(Registers[x] & 0X1);
+                Registers[x] >>= 1;
+                break;
+            case 0x7: // SUBN Vx, Vy
+                byte vx07 = Registers[x];
+                byte vy07 = Registers[y];
+                Registers[0xF] = (byte)(vy07 >= vx07 ? 1 : 0);
+                Registers[x] = (byte)(vy07 - vx07);
+                break;
+            case 0xE: // SHL Vx {, Vy}
+                Registers[0xF] = (byte)((Registers[x] & 0X80) >> 7);
+                Registers[x] <<= 1;
+                break;
+            default:
+                Console.WriteLine($" unknows 0x800 opcode 0x{opcode:X4}");
+                break;
+        }
+        Pc += 2;
+    }
+
+    private void ExecuteEGroup(ushort opcode)
+    {
+        switch (opcode & 0x00FF)
+        {
+            case 0xE000:
+                {
+                    int vx = (opcode & 0x0F00) >> 8;
+                    int key = Registers[vx];
+                    switch (opcode & 0x00FF)
+                    {
+                        case 0x9E: // SKP Vx
+                            if (input.IsKeyPressed(key))
+                                Pc += 4;
+                            else
+                                Pc += 2;
+                            break;
+                        case 0xA1: // SKNP Vx
+                            if (!input.IsKeyPressed(key))
+                                Pc += 4;
+                            else
+                                Pc += 2;
+                            break;
+                        default:
+                            Console.WriteLine($"unknown 0xE000 opcode: 0x{opcode:X4}");
+                            Pc += 2;
+                            break;
+                    }
+                }
+                break;
+        }
+    }
+
+    private void ExecuteFGroup(ushort opcode)
+    {
+        int vx = (opcode & 0x0F00) >> 8;
+        switch (opcode & 0x00FF)
+        {
+            case 0x07: // Fx07 - LD Vx, DT
+                Registers[vx] = DelayTimer;
+                Pc += 2;
+                break;
+
+            case 0x0A: // Fx0A - LD Vx, K
+                {
+                    int key = input.GetPressedKey();
+                    if (key == -1)
+                    {
+                        return; // repeat this instruction (PC unchanged)
+                    }
+
+                    Registers[vx] = (byte)key;
+                    Pc += 2;
+                    break;
+                }
+
+            case 0x15: // Fx15 - LD DT, Vx
+                DelayTimer = Registers[vx];
+                Pc += 2;
+                break;
+
+            case 0x18: // Fx18 - LD ST, Vx
+                SoundTimer = Registers[vx];
+                Pc += 2;
+                break;
+
+            case 0x1E: // Fx1E - ADD I, Vx
+                Index += Registers[vx];
+                Pc += 2;
+                break;
+
+            case 0x29: // Fx29 - LD F, Vx
+                Index = (ushort)(0x050 + Registers[vx] * 5);
+                Pc += 2;
+                break;
+
+            case 0x33: // Fx33 - LD B, Vx
+                byte xs = (byte)((opcode & 0x0F00) >> 8);
+                byte vxs = Registers[xs];
+                memory.Write(Index, (byte)(vxs / 100));
+                memory.Write(Index + 1, (byte)((vxs / 10) % 10));
+                memory.Write(Index + 2, (byte)(vxs % 10));
+                Pc += 2;
+                break;
+
+            case 0x55: // Fx55 - LD [I], Vx
+                       // Memory dump –
+                byte x55 = (byte)((opcode & 0x0F00) >> 8);
+                for (int i = 0; i <= x55; i++)
+                {
+                    memory.Write(Index + i, Registers[i]);
+
+                }
+                Pc += 2;
+
+
+                // Has quirk where index is incremented by 1 afterwards
+                break;
+
+            case 0x65: // Fx65 - LD Vx, [I]
+                       // Memory load – 
+                byte x65 = (byte)((opcode & 0x0F00) >> 8);
+
+                for (int i = 0; i <= x65; i++)
+                {
+                    Registers[i] = memory.Read(Index + i);
+
+                }
+                Pc += 2;
+                // Has quirk where index is incremented by 1 afterwards
+                break;
+            default:
+                Console.WriteLine($"Unknown 0xF000 opcode: 0x{opcode:X4}");
+                Pc += 2;
+                break;
+
+
+
+        }
+    }
+    //individual opcodes
+    private void ExecuteJP(ushort opcode) { Pc = (ushort)(opcode & 0x0FFF); }
+    private void ExecuteCALL(ushort opcode)
+    {
+        Stack[Sp++] = (ushort)(Pc + 2);
+        Pc = (ushort)(opcode & 0x0FFF);
+    }
+    private void ExecuteSE_Vx_Byte(ushort opcode)
+    {
+        if (Registers[(opcode & 0x0F00) >> 8] == (byte)(opcode & 0x00FF))
+            Pc += 4;
+        else
+            Pc += 2;
+    }
+    private void ExecuteSNE_Vx_Byte(ushort opcode)
+    {
+        if (Registers[(opcode & 0x0F00) >> 8] != (byte)(opcode & 0x00FF))
+            Pc += 4;
+        else
+            Pc += 2;
+    }
+    private void ExecuteSE_Vx_Vy(ushort opcode)
+    {
+        if (Registers[(opcode & 0x0F00) >> 8] == Registers[(opcode & 0x00F0) >> 4])
+            Pc += 4;
+        else
+            Pc += 2;
+    }
+    private void ExecuteLD_Vx_Byte(ushort opcode)
+    {
+        Registers[(opcode & 0x0F00) >> 8] = (byte)(opcode & 0x00FF);
+        Pc += 2;
+    }
+    private void ExecuteADD_Vx_Byte(ushort opcode)
+    {
+        Registers[(opcode & 0x0F00) >> 8] += (byte)(opcode & 0x00FF);
+        Pc += 2;
+    }
+    private void ExecuteSNE_Vx_Vy(ushort opcode)
+    {
+        if (Registers[(opcode & 0x0F00) >> 8] != Registers[(opcode & 0x00F0) >> 4])
+            Pc += 4;
+        else
+            Pc += 2;
+    }
+    private void ExecuteLD_I_Addr(ushort opcode)
+    {
+        Index = (ushort)(opcode & 0x0FFF);
+        Pc += 2;
+    }
+    private void ExecuteJP_V0_Addr(ushort opcode)
+    {
+        Pc = (ushort)((opcode & 0x0FFF) + Registers[0]);
+    }
+    private void ExecuteRND_Vx_Byte(ushort opcode)
+    {
+        Random random = new();
+        Registers[(opcode & 0x0F00) >> 8] = (byte)(random.Next(0, 256) & (opcode & 0x00FF));
+        Pc += 2;
+    }
+    //DXYN
+    private void ExecuteDRW_Vx_Vy_Nibble(ushort opcode)
     {
         byte x = Registers[(opcode & 0x0F00) >> 8];
         byte y = Registers[(opcode & 0x00F0) >> 4];
@@ -97,241 +366,10 @@ public class CPU
 
     }
 
-    public void ExecuteCycle()
-    {
-        
-        ushort Opcode = FetchOpcode(); // Fetchies
-
-        //motherload of switches for Executie and decoding
-        // ORs the first nibble to identify instruction type
-        switch (Opcode & 0xF000)
-        {
-            case 0x0000:
-                switch (Opcode & 0x00FF)//look at the last byte for E0 and EE
-                {
-                    case 0xE0: // CLS - Clear Display
-                        display.Clear();
-                        Pc += 2;
-                        break;
-
-                    case 0xEE: // RET - Return from subroutine
-                        Pc = Stack[--Sp];
-                        break;
-                    default:
-                        Console.WriteLine($"unknoiwing 0x0000 opcode: 0x{Opcode:X4}");
-                        Pc += 2;
-                        break;
-                }
-                break;
-            case 0x1000: // 1nnn - Jump to adress nnn
-                Pc = (ushort)(Opcode & 0x0FFF);
-                break;
-            case 0x2000: // 2nnn - Call nnn
-                Stack[Sp++] = (ushort)(Pc + 2);
-                Pc = (ushort)(Opcode & 0x0FFF);
-                break;
-            case 0x3000: //3xkk - Skip næste insturktion hvis Vx ==kk
-                if (Registers[(Opcode & 0x0F00) >> 8] == (byte)(Opcode & 0x00FF))
-                    Pc += 4;
-                else
-                    Pc += 2;
-                break;
-            case 0x4000: // 4xkk - Skip næste insturktiun hvis Vx != kk
-                if (Registers[(Opcode & 0x0F00) >> 8] != (byte)(Opcode & 0x00FF))
-                    Pc += 4;
-                else
-                    Pc += 2;
-                break;
-            case 0x5000: // 5xy0 - Skip næstese instruktion hvis Vx == VY
-                if (Registers[(Opcode & 0x0F00) >> 8] == Registers[(Opcode & 0x00F0) >> 4])
-                    Pc += 4;
-                else
-                    Pc += 2;
-                break;
-            case 0x6000:// 6xkk -Sætter værdien kk ind i register Vx
-                Registers[(Opcode & 0x0F00) >> 8] = (byte)(Opcode & 0x00FF);
-                Pc += 2;
-                break;
-            case 0x7000: // 7xkk - sætter Vx=Vx+kk
-                Registers[(Opcode & 0x0F00) >> 8] += (byte)(Opcode & 0x00FF);
-                Pc += 2;
-                break;
-            case 0x8000: // 0xy? matematik pis
-                byte x = (byte)((Opcode & 0x0F00) >> 8);
-                byte y = (byte)((Opcode & 0x00F0) >> 4);
-                switch (Opcode & 0x000F)
-                {
-                    case 0x0: Registers[x] = Registers[y]; break; //  LD Vx, Vy - Sætter værdien Vx= Vy
-                    case 0x1: Registers[x] |= Registers[y]; break; //  OR Vx, Vy -  Vx= Vx OR Vy
-                    case 0x2: Registers[x] &= Registers[y]; break; //  AND Vx, Vy - Vx= Vx AND Vy
-                    case 0x3: Registers[x] ^= Registers[y]; break; //  XOR Vx, Vy - Vx= Vx XOR Vy
-                    case 0x4: // ADD Vx, Vy with carry
-                        byte vx04 = Registers[x];
-                        byte vy04 = Registers[y];
-                        int sum = vx04+vy04;
-                        Registers[0xF] = (byte)(sum > 255 ? 1 : 0);
-                        Registers[x] = (byte)sum;
-                        break;
-                    case 0x5: // SUB Vx, By
-                        byte vx05 = Registers[x];
-                        byte vy05 = Registers[y];
-                        Registers[0xF] = (byte)(vx05 >= vy05 ? 1 : 0);
-                        Registers[x] = (byte)(vx05-vy05);
-                        break;
-                    case 0x6: // SHR Vx {, Vy}
-                        Registers[0xF] = (byte)(Registers[x] & 0X1);
-                        Registers[x] >>= 1;
-                        break;
-                    case 0x7: // SUBN Vx, Vy
-                        byte vx07 = Registers[x];
-                        byte vy07 = Registers[y];
-                        Registers[0xF] = (byte)(vy07 >= vx07 ? 1 : 0);
-                        Registers[x] = (byte)(vy07 - vx07);
-                        break;
-                    case 0xE: // SHL Vx {, Vy}
-                        Registers[0xF] = (byte)((Registers[x] & 0X80) >> 7);
-                        Registers[x] <<= 1;
-                        break;
-                    default:
-                        Console.WriteLine($" unknows 0x800 opcode 0x{Opcode:X4}");
-                        break;
-                }
-                Pc += 2;
-                break;
-            case 0x9000: //9xy0
-                if (Registers[(Opcode & 0x0F00) >> 8] != Registers[(Opcode & 0x00F0) >> 4])
-                    Pc += 4;
-                else
-                    Pc += 2;
-                break;
-            case 0xA000://Annn
-                Index = (ushort)(Opcode & 0x0FFF);
-                Pc += 2;
-                break;
-            case 0xB000://Bnnn
-                Pc = (ushort)((Opcode & 0x0FFF) + Registers[0]);
-                break;
-            case 0xC000://cxkk
-                Random random = new();
-                Registers[(Opcode & 0x0F00) >> 8] = (byte)(random.Next(0, 256) & (Opcode & 0x00FF));
-                Pc += 2;
-                break;
-            case 0xD000://dxyn
-                ExecuteDxyn(Opcode);
-                break;
-            case 0xE000:
-                {
-                    int vx = (Opcode & 0x0F00) >> 8;
-                    int key = Registers[vx];
-                    switch (Opcode & 0x00FF)
-                    {
-                        case 0x9E: // SKP Vx
-                            if (input.IsKeyPressed(key))
-                                Pc += 4;
-                            else
-                                Pc += 2;
-                            break;
-                        case 0xA1: // SKNP Vx
-                            if (!input.IsKeyPressed(key))
-                                Pc += 4;
-                            else
-                                Pc += 2;
-                            break;
-                        default:
-                            Console.WriteLine($"unknown 0xE000 opcode: 0x{Opcode:X4}");
-                            Pc += 2;
-                            break;
-                    }
-                }
-                break;
-            case 0xF000:
-                {
-                    int vx = (Opcode & 0x0F00) >> 8;
-                    switch (Opcode & 0x00FF)
-                    {
-                        case 0x07: // Fx07 - LD Vx, DT
-                            Registers[vx] = DelayTimer;
-                            Pc += 2;
-                            break;
-
-                        case 0x0A: // Fx0A - LD Vx, K
-                            {
-                                int key = input.GetPressedKey();
-                                if (key == -1)
-                                {
-                                    return; // repeat this instruction (PC unchanged)
-                                }
-
-                                Registers[vx] = (byte)key;
-                                Pc += 2;
-                                break;
-                            }
-
-                        case 0x15: // Fx15 - LD DT, Vx
-                            DelayTimer = Registers[vx];
-                            Pc += 2;
-                            break;
-
-                        case 0x18: // Fx18 - LD ST, Vx
-                            SoundTimer = Registers[vx];
-                            Pc += 2;
-                            break;
-
-                        case 0x1E: // Fx1E - ADD I, Vx
-                            Index += Registers[vx];
-                            Pc += 2;
-                            break;
-
-                        case 0x29: // Fx29 - LD F, Vx
-                            Index = (ushort)(0x050 + Registers[vx] * 5);
-                            Pc += 2;
-                            break;
-
-                        case 0x33: // Fx33 - LD B, Vx
-                            byte xs = (byte)((Opcode & 0x0F00) >> 8);
-                            byte vxs = Registers[xs];
-                            memory.Write(Index, (byte)(vxs / 100));
-                            memory.Write(Index + 1, (byte)((vxs / 10) % 10));
-                            memory.Write(Index + 2, (byte)(vxs % 10));
-                            Pc += 2;
-                            break;
-
-                        case 0x55: // Fx55 - LD [I], Vx
-                                   // Memory dump –
-                            byte x55 = (byte)((Opcode & 0x0F00) >> 8);
-                            for (int i = 0; i <= x55; i++)
-                            {
-                                memory.Write(Index + i, Registers[i]);
-
-                            }
-                            Pc += 2;
 
 
-                            // Has quirk where index is incremented by 1 afterwards
-                            break;
 
-                        case 0x65: // Fx65 - LD Vx, [I]
-                                   // Memory load – 
-                            byte x65 = (byte)((Opcode & 0x0F00) >> 8);
 
-                            for (int i = 0; i <= x65; i++)
-                            {
-                                Registers[i] = memory.Read(Index + i);
 
-                            }
-                            Pc += 2;
-                            // Has quirk where index is incremented by 1 afterwards
-                            break;
-                        default:
-                            Console.WriteLine($"Unknown 0xF000 opcode: 0x{Opcode:X4}");
-                            Pc += 2;
-                            break;
-                    }
-                    break;
-                }
-        }
-    }
+
 }
-
-
-
