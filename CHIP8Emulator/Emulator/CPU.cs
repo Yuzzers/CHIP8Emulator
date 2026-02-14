@@ -151,40 +151,36 @@ public class CPU
 
     private void ExecuteEGroup(ushort opcode)
     {
+        int vx = (opcode & 0x0F00) >> 8;
+        int key = Registers[vx];
         switch (opcode & 0x00FF)
         {
-            case 0xE000:
-                {
-                    int vx = (opcode & 0x0F00) >> 8;
-                    int key = Registers[vx];
-                    switch (opcode & 0x00FF)
-                    {
-                        case 0x9E: // SKP Vx
-                            if (input.IsKeyPressed(key))
-                                Pc += 4;
-                            else
-                                Pc += 2;
-                            break;
-                        case 0xA1: // SKNP Vx
-                            if (!input.IsKeyPressed(key))
-                                Pc += 4;
-                            else
-                                Pc += 2;
-                            break;
-                        default:
-                            Console.WriteLine($"unknown 0xE000 opcode: 0x{opcode:X4}");
-                            Pc += 2;
-                            break;
-                    }
-                }
+            case 0x9E: // SKP Vx
+                if (input.IsKeyPressed(key))
+                    Pc += 4;
+                else
+                    Pc += 2;
+                break;
+            case 0xA1: // SKNP Vx
+                if (!input.IsKeyPressed(key))
+                    Pc += 4;
+                else
+                    Pc += 2;
+                break;
+            default:
+                Console.WriteLine($"unknown 0xE000 opcode: 0x{opcode:X4}");
+                Pc += 2;
                 break;
         }
     }
 
+
+
+
     private void ExecuteFGroup(ushort opcode)
     {
         int vx = (opcode & 0x0F00) >> 8;
-        
+
         switch (opcode & 0x00FF)
         {
             case 0x07: // Fx07 - LD Vx, DT
