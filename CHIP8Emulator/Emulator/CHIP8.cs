@@ -63,6 +63,11 @@ namespace CHIP8Emulator
             memory.Load(FontSet, FontStartAddress);
         }
 
+        public bool DisplayChanged
+{
+            get => cpu.displayChanged;
+            set => cpu.displayChanged = value;
+}
 
         public void LoadRom(byte[] rom)
         {

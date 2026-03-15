@@ -21,6 +21,7 @@ public class CPU
     public ushort Index { get; set; }
     public byte DelayTimer { get; private set; }
     public byte SoundTimer { get; private set; }
+    public bool displayChanged {get;set;}
 
 
     public void DecrementTimers()
@@ -93,6 +94,7 @@ public class CPU
         {
             case 0xE0:
                 display.Clear();
+                displayChanged = true;
                 Pc += 2;
                 break;
 
@@ -345,6 +347,7 @@ public class CPU
                 if (spritePixel)
                 {
                     bool _collision = display.TogglePixel(x + collision, y + row);
+                    
 
                     //hvis collision skær VF = 1
                     if (_collision) Registers[0xF] = 1;
@@ -353,7 +356,12 @@ public class CPU
 
         }
         Pc += 2;
+        displayChanged = true;
+    }
 
+    public void ClearDisplayFlag()
+    {
+        displayChanged = false;
     }
 
 

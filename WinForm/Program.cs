@@ -45,7 +45,13 @@ namespace CHIP8EmulatorGUI
                 emulator.DecrementTimers();
 
 
-                displayPanel.Invalidate();
+
+                if (emulator.DisplayChanged)
+                {
+                    displayPanel.Invalidate();
+                    emulator.DisplayChanged= false;
+                }
+
             };
             timer.Start();
         }
