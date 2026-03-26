@@ -57,6 +57,10 @@ namespace CHIP8Emulator
         {
             cpu.DecrementTimers();
         }
+        public bool ShouldBeep()
+        {
+            return cpu.ShouldBeep();
+        }
 
         private void LoadFontSet()
         {

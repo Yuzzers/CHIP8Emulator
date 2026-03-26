@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using CHIP8Emulator;
 using System.IO;
+using System.Media;
 
 namespace CHIP8EmulatorGUI
 {
@@ -43,6 +44,11 @@ namespace CHIP8EmulatorGUI
 
                 // Decrement timers once per tick
                 emulator.DecrementTimers();
+
+                if (emulator.ShouldBeep())
+                {
+                    Console.Beep(440,1000/60);
+                }
 
 
 

@@ -30,6 +30,11 @@ public class CPU
         if (SoundTimer > 0) SoundTimer--;
     }
 
+    public bool ShouldBeep()
+    {
+        return SoundTimer > 0;
+    }
+
 
 
     internal byte GetRegister(int i) => Registers[i];
