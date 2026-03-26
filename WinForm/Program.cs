@@ -12,11 +12,38 @@ namespace CHIP8EmulatorGUI
         private Chip8 emulator;
         private Panel displayPanel;
         private const int Scale = 10;
+        private int MapKey(Keys key)
+        {
+            switch (key)
+            {
+                case Keys.D1: return 0x1;
+                case Keys.D2: return 0x2;
+                case Keys.D3: return 0x3;
+                case Keys.D4: return 0xC;
+                case Keys.Q: return 0x4;
+                case Keys.W: return 0x5;
+                case Keys.E: return 0x6;
+                case Keys.R: return 0xD;
+                case Keys.A: return 0x7;
+                case Keys.S: return 0x8;
+                case Keys.D: return 0x9;
+                case Keys.F: return 0xE;
+                case Keys.Z: return 0xA;
+                case Keys.X: return 0x0;
+                case Keys.C: return 0xB;
+                case Keys.V: return 0xF;
+                default: return -1;
+            }
+        }
 
         public MainForm()
         {
             this.Text = "CHIP-8 Emulator";
             this.ClientSize = new Size(64 * Scale, 32 * Scale);
+
+            this.KeyDown += KeyDownForm;
+            this.KeyUp += KeyUpForm;
+            this.KeyPreview = true;
 
             emulator = new Chip8();
 
@@ -28,6 +55,7 @@ namespace CHIP8EmulatorGUI
             };
             displayPanel.Paint += DisplayPanel_Paint;
             this.Controls.Add(displayPanel);
+            this.Focus();
 
             // Load ROM at startup
             LoadRomAtStartup();
@@ -47,7 +75,7 @@ namespace CHIP8EmulatorGUI
 
                 if (emulator.ShouldBeep())
                 {
-                    Console.Beep(440,1000/60);
+                    Console.Beep(440, 1000 / 60);
                 }
 
 
@@ -55,7 +83,7 @@ namespace CHIP8EmulatorGUI
                 if (emulator.DisplayChanged)
                 {
                     displayPanel.Invalidate();
-                    emulator.DisplayChanged= false;
+                    emulator.DisplayChanged = false;
                 }
 
             };
@@ -105,6 +133,18 @@ namespace CHIP8EmulatorGUI
                         g.FillRectangle(Brushes.White, x * Scale, y * Scale, Scale, Scale);
                 }
             }
+        }
+        private void KeyDownForm(object sender, KeyEventArgs e)
+        {
+            int key = MapKey(e.KeyCode);
+            if (key != -1)
+                emulator.input.SetKey(key, true);
+        }
+        private void KeyUpForm(object sender, KeyEventArgs e)
+        {
+            int key = MapKey(e.KeyCode);
+            if (key != -1)
+                emulator.input.SetKey(key, false);
         }
 
         [STAThread]

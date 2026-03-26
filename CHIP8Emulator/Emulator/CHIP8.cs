@@ -8,7 +8,8 @@ namespace CHIP8Emulator
         private readonly CPU cpu;
         private readonly Memory memory;
         private readonly Display display;
-        private readonly Input input;
+        //private readonly Input input;
+        public Input input { get; private set; }
 
         private const ushort ProgramstartAddress = 0x200;
         private const ushort FontStartAddress = 0x050;
@@ -68,10 +69,10 @@ namespace CHIP8Emulator
         }
 
         public bool DisplayChanged
-{
+        {
             get => cpu.displayChanged;
             set => cpu.displayChanged = value;
-}
+        }
 
         public void LoadRom(byte[] rom)
         {

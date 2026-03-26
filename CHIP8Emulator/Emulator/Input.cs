@@ -22,5 +22,4 @@ public class Input
         }
         return -1; // ingen tast trykket
     }
-
 }
